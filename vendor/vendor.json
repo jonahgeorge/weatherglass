@@ -1,0 +1,73 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "OzBOiWmrQsdEFLW1oke9IHwMQn4=",
+			"path": "github.com/flosch/pongo2",
+			"revision": "1d0f0d3af150c4a65dfd424d742f7374819e7d29",
+			"revisionTime": "2017-02-27T15:55:00Z"
+		},
+		{
+			"checksumSHA1": "NWPy8gY+9jExHxBYKhjxJ3ir7/0=",
+			"path": "github.com/goincremental/negroni-sessions",
+			"revision": "0055e7581fb0fe0f6ee5f622199672425526e1b2",
+			"revisionTime": "2016-10-17T07:35:17Z"
+		},
+		{
+			"checksumSHA1": "r2at94ZOVarmcNNfp7zwiXXyQac=",
+			"path": "github.com/goincremental/negroni-sessions/cookiestore",
+			"revision": "0055e7581fb0fe0f6ee5f622199672425526e1b2",
+			"revisionTime": "2016-10-17T07:35:17Z"
+		},
+		{
+			"checksumSHA1": "g/V4qrXjUGG9B+e3hB+4NAYJ5Gs=",
+			"path": "github.com/gorilla/context",
+			"revision": "08b5f424b9271eedf6f9f0ce86cb9396ed337a42",
+			"revisionTime": "2016-08-17T18:46:32Z"
+		},
+		{
+			"checksumSHA1": "ucTBCc7dDRKLGPsYfAzu/Gq63qA=",
+			"path": "github.com/gorilla/securecookie",
+			"revision": "e59506cc896acb7f7bf732d4fdf5e25f7ccd8983",
+			"revisionTime": "2017-02-24T19:38:04Z"
+		},
+		{
+			"checksumSHA1": "I3dUVu4QOmYBPKfifkBZovtsYUA=",
+			"path": "github.com/gorilla/sessions",
+			"revision": "8b6b4cd75f07f7ee036eb37b8127bd40ab1efc49",
+			"revisionTime": "2017-04-29T19:22:41Z"
+		},
+		{
+			"checksumSHA1": "+RcTwqswcjEpErds31bZllnUGgI=",
+			"path": "github.com/juju/errors",
+			"revision": "8234c829496aaeae67c5c71235a2cbcc289e960a",
+			"revisionTime": "2017-05-09T13:42:57Z"
+		},
+		{
+			"checksumSHA1": "gKyBj05YkfuLFruAyPZ4KV9nFp8=",
+			"path": "github.com/julienschmidt/httprouter",
+			"revision": "975b5c4c7c21c0e3d2764200bf2aa8e34657ae6e",
+			"revisionTime": "2017-04-30T22:20:11Z"
+		},
+		{
+			"checksumSHA1": "Wh2YCiWY/VIAEEQGLS7sMB9isXk=",
+			"path": "github.com/lib/pq",
+			"revision": "8837942c3e09574accbc5f150e2c5e057189cace",
+			"revisionTime": "2017-06-03T22:54:54Z"
+		},
+		{
+			"checksumSHA1": "Gk3jTNQ5uGDUE0WMJFWcYz9PMps=",
+			"path": "github.com/lib/pq/oid",
+			"revision": "8837942c3e09574accbc5f150e2c5e057189cace",
+			"revisionTime": "2017-06-03T22:54:54Z"
+		},
+		{
+			"checksumSHA1": "DB7eoipX6KBANF3D9bAtvWLq+i8=",
+			"path": "github.com/urfave/negroni",
+			"revision": "3019daf414cfd2c51de68c3a535707c0de6e3d83",
+			"revisionTime": "2017-06-04T13:12:13Z"
+		}
+	],
+	"rootPath": "github.com/jonahgeorge/weatherglass"
+}

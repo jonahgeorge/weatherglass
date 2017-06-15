@@ -1,0 +1,50 @@
+{% extends "../layouts/public.html" %}
+
+{% block content %}
+<h1>Documentation</h1>
+
+<h2 id='browser'>Browser</h2>
+
+<pre><code>
+&lt;script type="text/javascript">
+  (function() {
+    var t   = document.createElement('script');
+    t.type  = 'text/javascript';
+    t.async = true;
+    t.id    = 'weatherglass-tracker';
+    t.setAttribute('data-site-id', 'your unique id here');
+    t.src = "https://weatherglass.herokuapp.com/track.js";
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(t, s);
+  })();
+&lt;/script>
+</code></pre>
+
+<br>
+
+<h2 id='laravel'>Laravel</h2>
+
+<a href="https://github.com/jonahgeorge/weatherglass-laravel">Github Repository</a>
+
+<pre><code>
+    composer require jonahgeorge/weatherglass-laravel
+</code></pre>
+
+In <code>config/weatherglass.php</code> add your <code>site_id</code>.
+
+<pre><code>
+return [
+    'site_id' => 'YOUR SITE ID',
+];
+</code></pre>
+
+In <code>app/Http/Kernel.php</code>, add the Weatherglass middleware to your web middleware group.
+
+<pre><code>
+protected $middlewareGroups = [
+    'web' => [
+        \JonahGeorge\Middleware\Weatherglass::class,
+    ],
+];
+</code></pre>
+{% endblock %}
