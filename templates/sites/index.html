@@ -19,10 +19,10 @@
     </thead>
     {% for site in sites %}
     <tr>
-        <td>{{ site.id }}</td>
-        <td><a href="/sites/{{ site.id }}">{{ site.name }}</a></td>
-        <td>{{ site.created_at }}</td>
-        <td>{{ site.updated_at }}</td>
+        <td>{{ site.Id }}</td>
+        <td><a href="/sites/{{ site.Id }}">{{ site.Name }}</a></td>
+        <td>{{ site.CreatedAt }}</td>
+        <td>{{ site.UpdatedAt }}</td>
     </tr>
     {% endfor %}
 </table>

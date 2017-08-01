@@ -59,7 +59,9 @@
         {% for f in flashes %}
         <div class="alert alert-info">{{ f }}</div>
         {% endfor %}
-        {% block content %}{% endblock %}
+
+        {% block content %}
+        {% endblock %}
     </div>
 </main>
 </body>

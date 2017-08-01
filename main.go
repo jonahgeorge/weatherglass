@@ -1,80 +1,77 @@
 package main
 
 import (
-	"net/http"
 	"log"
-	"database/sql"
-	_ "github.com/lib/pq"
-	"github.com/julienschmidt/httprouter"
-	"github.com/flosch/pongo2"
-	"github.com/urfave/negroni"
-	"github.com/goincremental/negroni-sessions"
-	"github.com/goincremental/negroni-sessions/cookiestore"
-	// "github.com/rs/cors"
+	"net/http"
 	"os"
+
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
+	"github.com/jonahgeorge/weatherglass/models"
+	repo "github.com/jonahgeorge/weatherglass/repositories"
+	_ "github.com/lib/pq"
 )
-
-type Application struct {
-	db *sql.DB
-}
-
-func NewApplication() *Application {
-	dataSourceName := os.Getenv("DATABASE_URL")
-
-	db, err := sql.Open("postgres", dataSourceName)
-	if err != nil {
-		log.Panic(err)
-	}
-
-	if err = db.Ping(); err != nil {
-		log.Panic(err)
-	}
-
-	app := &Application{
-		db: db,
-	}
-
-	return app
-}
-
-func (app *Application) RenderTemplate(w http.ResponseWriter, r *http.Request, name string, data pongo2.Context) error {
-	var t *pongo2.Template
-	var err error
-
-	t, err = pongo2.FromFile("templates/" + name + ".html")
-
-	session := sessions.GetSession(r)
-
-	if id, ok := session.Get("userId").(int); ok {
-		user := NewUserRepository(app.db).FindById(id)
-		data["currentUser"] = user
-	}
-
-	// Add some static values
-	data["flashes"] = session.Flashes()
-
-	if err != nil {
-		return err
-	}
-
-	return t.ExecuteWriter(data, w)
-}
 
 func main() {
 	app := NewApplication()
 
-	store := cookiestore.New([]byte("keyboardcat"))
+	r := mux.NewRouter()
+	r.HandleFunc("/", app.IndexHandler).Methods("GET")
+	r.HandleFunc("/login", app.SessionsNewHandler).Methods("GET")
+	r.HandleFunc("/login", app.SessionsCreateHandler).Methods("POST")
+	r.HandleFunc("/logout", app.SessionsDestroyHandler).Methods("GET")
+	r.HandleFunc("/signup", app.UsersNewHandler).Methods("GET")
+	r.HandleFunc("/signup", app.UsersCreateHandler).Methods("POST")
+	r.HandleFunc("/email_confirmation/new", app.EmailConfirmationsNewHandler).Methods("GET")
+	r.HandleFunc("/email_confirmation", app.EmailConfirmationsCreateHandler).Methods("POST")
+	r.HandleFunc("/email_confirmation", app.EmailConfirmationsShowHandler).Methods("GET")
 
-	router := httprouter.New()
-	router.GET("/login", app.SessionsNewHandler)
-	router.POST("/login", app.SessionsCreateHandler)
-	router.GET("/logout", app.SessionsDestroyHandler)
-	router.GET("/sites", app.SitesIndexHandler)
-	router.GET("/documentation", app.DocumentationIndexHandler)
-	router.GET("/", app.RootIndexHandler)
+	r.HandleFunc("/sites", app.RequireAuthentication(app.RequireEmailConfirmation(app.SitesIndexHandler))).Methods("GET")
+	r.HandleFunc("/sites/{id:[0-9]+}", app.RequireAuthentication(app.RequireEmailConfirmation(app.SitesShowHandler))).Methods("GET")
+	r.HandleFunc("/sites/{id:[0-9]+}/edit", app.RequireAuthentication(app.RequireEmailConfirmation(app.SitesEditHandler))).Methods("GET")
+	r.HandleFunc("/sites/{id:[0-9]+}", app.RequireAuthentication(app.RequireEmailConfirmation(app.SitesUpdateHandler))).Methods("PUT")
+	r.HandleFunc("/sites/new", app.RequireAuthentication(app.RequireEmailConfirmation(app.SitesNewHandler))).Methods("GET")
+	r.HandleFunc("/sites", app.RequireAuthentication(app.RequireEmailConfirmation(app.SitesCreateHandler))).Methods("POST")
 
-	n := negroni.Classic()
-	n.Use(sessions.Sessions("weatherglass_session", store))
-	n.UseHandler(router)
-	n.Run()
+	port, ok := os.LookupEnv("PORT")
+	if !ok {
+		port = "3000"
+	}
+
+	log.Println("Listening on " + port)
+	log.Fatal(http.ListenAndServe(":"+port,
+		handlers.HTTPMethodOverrideHandler(
+			handlers.LoggingHandler(os.Stdout, r))))
+}
+
+type AuthenticatedHandlerFunc func(http.ResponseWriter, *http.Request, *models.User)
+
+func (app *Application) RequireAuthentication(next AuthenticatedHandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		session, err := app.GetSession(r)
+		user, err := repo.NewUsersRepository(app.db).FindById(session.Values["userId"].(int))
+		if user == nil || err != nil {
+			session.AddFlash("You must be logged in!")
+			session.Save(r, w)
+			http.Redirect(w, r, "/login", 307)
+			return
+		}
+
+		next(w, r, user)
+	})
+}
+
+func (app *Application) RequireEmailConfirmation(next AuthenticatedHandlerFunc) AuthenticatedHandlerFunc {
+	return AuthenticatedHandlerFunc(func(w http.ResponseWriter, r *http.Request, currentUser *models.User) {
+		session, _ := app.GetSession(r)
+
+		if !currentUser.IsEmailConfirmed {
+			session.AddFlash("You must confirm your email address before continuing")
+			session.Save(r, w)
+			http.Redirect(w, r, "/email_confirmation/new", 302)
+			return
+		}
+
+		next(w, r, currentUser)
+	})
 }

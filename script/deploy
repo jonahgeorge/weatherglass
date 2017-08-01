@@ -1,0 +1,15 @@
+#!/bin/sh
+
+set -e
+
+# Build image
+docker build -t jonahgeorge/weatherglass .
+
+# Tag image
+docker tag jonahgeorge/weatherglass registry.heroku.com/weatherglass/web
+
+# Push image
+docker push registry.heroku.com/weatherglass/web
+
+# Run pending database migrations
+heroku run 'migrate -path migrations -database $DATABASE_URL up'

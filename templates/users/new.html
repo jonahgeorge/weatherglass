@@ -1,0 +1,30 @@
+{% extends "../layouts/public.html" %}
+
+{% block content %}
+<h1>Sign up</h1>
+
+<form action="/signup" method="post">
+  <div class="form-group">
+    <label for="name">Name</label>
+    <input id="name" name="name" type="text" class="form-control" value="{{ user.Name }}" required />
+  </div>
+
+  <div class="form-group">
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" class="form-control" value="{{ user.Email }}" required />
+  </div>
+
+  <div class="form-group">
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" class="form-control" required />
+  </div>
+
+  <div class="form-group">
+    <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}"></div>
+  </div>
+
+  <div class="form-group">
+    <input type="submit" class="btn btn-primary" value="Sign up">
+  </div>
+</form>
+{% endblock %}
