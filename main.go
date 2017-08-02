@@ -32,6 +32,7 @@ func main() {
 	r.HandleFunc("/sites/{id:[0-9]+}", app.RequireAuthentication(app.RequireEmailConfirmation(app.SitesUpdateHandler))).Methods("PUT")
 	r.HandleFunc("/sites/new", app.RequireAuthentication(app.RequireEmailConfirmation(app.SitesNewHandler))).Methods("GET")
 	r.HandleFunc("/sites", app.RequireAuthentication(app.RequireEmailConfirmation(app.SitesCreateHandler))).Methods("POST")
+	r.HandleFunc("/sites/{id:[0-9]+}/reports/events_over_time", app.RequireAuthentication(app.RequireEmailConfirmation(app.EventsOverTimeIndexHandler))).Methods("GET")
 
 	port, ok := os.LookupEnv("PORT")
 	if !ok {
@@ -49,7 +50,16 @@ type AuthenticatedHandlerFunc func(http.ResponseWriter, *http.Request, *models.U
 func (app *Application) RequireAuthentication(next AuthenticatedHandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session, err := app.GetSession(r)
-		user, err := repo.NewUsersRepository(app.db).FindById(session.Values["userId"].(int))
+
+		userId, ok := session.Values["userId"]
+		if !ok {
+			session.AddFlash("You must be logged in!")
+			session.Save(r, w)
+			http.Redirect(w, r, "/login", 307)
+			return
+		}
+
+		user, err := repo.NewUsersRepository(app.db).FindById(userId.(int))
 		if user == nil || err != nil {
 			session.AddFlash("You must be logged in!")
 			session.Save(r, w)

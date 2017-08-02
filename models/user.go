@@ -30,5 +30,6 @@ func (u *User) CanDelete(resource Permissible) bool {
 }
 
 func (u *User) FromRow(row Scannable) error {
-	return row.Scan(&u.Id, &u.Name, &u.Email, &u.PasswordDigest, &u.CreatedAt, &u.UpdatedAt)
+	return row.Scan(&u.Id, &u.Name, &u.Email, &u.PasswordDigest, &u.CreatedAt,
+		&u.UpdatedAt, &u.EmailConfirmationToken, &u.IsEmailConfirmed)
 }

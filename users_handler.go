@@ -6,9 +6,9 @@ import (
 	"net/http"
 
 	"github.com/flosch/pongo2"
-	"github.com/jonahgeorge/letterdrop/mailers"
-	"github.com/jonahgeorge/letterdrop/models"
-	repo "github.com/jonahgeorge/letterdrop/repositories"
+	"github.com/jonahgeorge/weatherglass/mailers"
+	"github.com/jonahgeorge/weatherglass/models"
+	repo "github.com/jonahgeorge/weatherglass/repositories"
 	"github.com/tuvistavie/securerandom"
 )
 

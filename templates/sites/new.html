@@ -1,7 +1,9 @@
-{{define "sites/new"}}
+{% extends "../layouts/public.html" %}
+
+{% block content %}
 <h1>New Site</h1>
 
-<form action="/login" method="post">
+<form action="/sites" method="post">
     <div class="form-group">
         <label for="name">Name</label>
         <input id="name" name="name" type="text" class="form-control" required />
@@ -11,4 +13,4 @@
         <input type="submit" class="btn btn-secondary">
     </div>
 </form>
-{{end}}
+{% endblock %}

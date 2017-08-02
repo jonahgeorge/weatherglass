@@ -9,8 +9,8 @@ import (
 const (
 	SITES_FIND_BY_ID_SQL      = "select * from sites where id = $1"
 	SITES_FIND_BY_USER_ID_SQL = "select * from sites where user_id = $1"
-	SITES_INSERT_SQL          = "insert into sites (user_id, name) values ($1, $2)"
-	SITES_UPDATE_SQL          = "update sites set name $2 where id = $1"
+	SITES_INSERT_SQL          = "insert into sites (user_id, name) values ($1, $2) returning *"
+	SITES_UPDATE_SQL          = "update sites set name = $2, updated_at = now() where id = $1 returning *"
 	SITES_DELETE_SQL          = "delete from sites where id = $1"
 )
 

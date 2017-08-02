@@ -53,9 +53,7 @@ func (app *Application) SitesShowHandler(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	app.Render(w, r, "sites/show", pongo2.Context{
-		"site": site,
-	})
+	app.Render(w, r, "sites/show", pongo2.Context{"site": site})
 }
 
 func (app *Application) SitesEditHandler(w http.ResponseWriter, r *http.Request, currentUser *models.User) {
