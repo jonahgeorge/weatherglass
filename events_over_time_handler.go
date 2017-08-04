@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/jonahgeorge/weatherglass/models"
@@ -11,13 +13,22 @@ import (
 
 func (app *Application) EventsOverTimeIndexHandler(w http.ResponseWriter, r *http.Request, currentUser *models.User) {
 	siteId, _ := strconv.Atoi(mux.Vars(r)["id"])
-	interval := r.URL.Query().Get("interval")
-	wange := r.URL.Query().Get("range")
 
 	eventsPerMinuteQuery := queries.NewEventsPerMinuteQuery(app.db)
-	eventsPerMinuteQuery.Run(siteId, wange, interval)
 
-	// const results = {};
-	// report.forEach((r) => { results[r["interval"]] = r["count"]; });
-	// response.json(results);
+	results, _ := eventsPerMinuteQuery.Run(
+		siteId,
+		r.URL.Query().Get("range"),
+		r.URL.Query().Get("interval"),
+	)
+
+	response := make(map[time.Time]int)
+	for _, v := range results {
+		response[v.Interval] = v.Count
+	}
+
+	b, _ := json.MarshalIndent(response, "", " ")
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(b)
 }

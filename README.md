@@ -6,7 +6,10 @@ Weatherglass is an open-source Google Analytics alternative that is easy to self
 ## Developing 
 
 ```sh
-brew install forego
+brew install go forego
+
+
+go get ./...
 forego run 'go run *.go'
 ```
 

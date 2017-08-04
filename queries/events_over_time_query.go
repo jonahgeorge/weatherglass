@@ -1,6 +1,9 @@
 package queries
 
-import "database/sql"
+import (
+	"database/sql"
+	"time"
+)
 
 const EVENTS_PER_MINUTE_SQL = `
 with timeslices as (
@@ -19,7 +22,7 @@ select
 from timeslices
 left outer join (
   select
-    date_trunc($3, timestamp) as interval,
+    date_trunc($3, created_at) as interval,
     count(*) as count
   from events
   where site_id = $1
@@ -31,12 +34,24 @@ type EventsOverTimeQuery struct {
 	db *sql.DB
 }
 
+type EventsOverTimeResult struct {
+	Interval time.Time `json:"interval"`
+	Count    int       `json:"count"`
+}
+
 func NewEventsPerMinuteQuery(db *sql.DB) *EventsOverTimeQuery {
 	return &EventsOverTimeQuery{db: db}
 }
 
-func (q *EventsOverTimeQuery) Run(siteId int, wange string, interval string) error {
+func (q *EventsOverTimeQuery) Run(siteId int, wange string, interval string) ([]EventsOverTimeResult, error) {
+	var results []EventsOverTimeResult
 	rows, err := q.db.Query(EVENTS_PER_MINUTE_SQL, siteId, wange, interval, "1 "+interval)
 
-	return err
+	for rows.Next() {
+		result := new(EventsOverTimeResult)
+		err = rows.Scan(&result.Interval, &result.Count)
+		results = append(results, *result)
+	}
+
+	return results, err
 }

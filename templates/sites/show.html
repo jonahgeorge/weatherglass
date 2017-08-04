@@ -1,16 +1,19 @@
 {% extends "../layouts/public.html" %}
 
 {% block content %}
+<script type="text/javascript" src="https://code.highcharts.com/highcharts.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/chartkick/2.2.4/chartkick.min.js"></script>
+
 <h1>{{ site.Name }}</h1>
 
-<a rel="nofollow" class="btn btn-danger btn-sm" href="/sites/{{site.Id}}/delete" onclick="confirm('Are you sure you want to delete this site?')">Delete Site</a>
+<a rel="nofollow" class="btn btn-danger btn-sm" data-method="DELETE" href="/sites/{{site.Id}}" data-confirm="Are you sure you want to delete this site?">Delete Site</a>
 
 <div class='row'>
   <div class='col-md-6'>
     <label>Traffic Over the Past Day (by hour)</label>
     <div id="daily-chart" style="height: 300px; text-align: center; color: #999; line-height: 300px; font-size: 14px; font-family: 'Lucida Grande', 'Lucida Sans Unicode', Verdana, Arial, Helvetica, sans-serif;">Loading...</div>
     <script type='application/javascript'>
-    new Chartkick.LineChart('daily-chart', '/sites/{{site.Id}}/reports/events_over_time?interval=hour&range=day');
+new Chartkick.LineChart('daily-chart', '/sites/{{site.Id}}/reports/events_over_time?interval=hour&range=day');
     </script>
   </div>
 
@@ -18,7 +21,7 @@
     <label>Traffic Over the Past Month (by day)</label>
     <div id="monthly-chart" style="height: 300px; text-align: center; color: #999; line-height: 300px; font-size: 14px; font-family: 'Lucida Grande', 'Lucida Sans Unicode', Verdana, Arial, Helvetica, sans-serif;">Loading...</div>
     <script type='application/javascript'>
-    new Chartkick.LineChart('monthly-chart', '/sites/{{site.Id}}/reports/events_over_time?interval=day&range=month');
+new Chartkick.LineChart('monthly-chart', '/sites/{{site.Id}}/reports/events_over_time?interval=day&range=month');
     </script>
   </div>
 </div>

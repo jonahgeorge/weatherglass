@@ -11,3 +11,8 @@ type Event struct {
 	UserAgent *string
 	CreatedAt time.Time
 }
+
+func (e Event) FromRow(row Scannable) error {
+	return row.Scan(&e.Id, &e.SiteId, &e.Resource, &e.Referrer, &e.Title,
+		&e.UserAgent, &e.CreatedAt)
+}

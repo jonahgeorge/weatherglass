@@ -48,6 +48,7 @@ func (app *Application) Render(w http.ResponseWriter, r *http.Request, name stri
 	}
 
 	data["flashes"] = session.Flashes()
+	data["host"] = os.Getenv("HOST")
 	data["recaptcha_site_key"] = os.Getenv("RECAPTCHA_SITE_KEY")
 	session.Save(r, w)
 
