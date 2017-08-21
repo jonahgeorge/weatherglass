@@ -1,4 +1,4 @@
-package main
+package routes
 
 import (
 	"database/sql"
@@ -8,6 +8,7 @@ import (
 	"github.com/flosch/pongo2"
 	"github.com/gorilla/sessions"
 	"github.com/haisum/recaptcha"
+	"github.com/jonahgeorge/weatherglass/models"
 	repo "github.com/jonahgeorge/weatherglass/repositories"
 	_ "github.com/lib/pq"
 	"github.com/sendgrid/sendgrid-go"
@@ -57,4 +58,45 @@ func (app *Application) Render(w http.ResponseWriter, r *http.Request, name stri
 
 func (app *Application) GetSession(r *http.Request) (*sessions.Session, error) {
 	return app.sessions.Get(r, "weatherglass")
+}
+
+type AuthenticatedHandlerFunc func(http.ResponseWriter, *http.Request, *models.User)
+
+func (app *Application) RequireAuthentication(next AuthenticatedHandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		session, err := app.GetSession(r)
+
+		userId, ok := session.Values["userId"]
+		if !ok {
+			session.AddFlash("You must be logged in!")
+			session.Save(r, w)
+			http.Redirect(w, r, "/login", 307)
+			return
+		}
+
+		user, err := repo.NewUsersRepository(app.db).FindById(userId.(int))
+		if user == nil || err != nil {
+			session.AddFlash("You must be logged in!")
+			session.Save(r, w)
+			http.Redirect(w, r, "/login", 307)
+			return
+		}
+
+		next(w, r, user)
+	})
+}
+
+func (app *Application) RequireEmailConfirmation(next AuthenticatedHandlerFunc) AuthenticatedHandlerFunc {
+	return AuthenticatedHandlerFunc(func(w http.ResponseWriter, r *http.Request, currentUser *models.User) {
+		session, _ := app.GetSession(r)
+
+		if !currentUser.IsEmailConfirmed {
+			session.AddFlash("You must confirm your email address before continuing")
+			session.Save(r, w)
+			http.Redirect(w, r, "/email_confirmation/new", 302)
+			return
+		}
+
+		next(w, r, currentUser)
+	})
 }
