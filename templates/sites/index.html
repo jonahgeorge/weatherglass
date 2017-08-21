@@ -1,29 +1,27 @@
 {% extends "../layouts/public.html" %}
 
 {% block content %}
-<h1>Sites</h1>
+<div class="dashhead">
+  <div class="dashhead-titles">
+    <h6 class="dashhead-subtitle">Sites</h6>
+    <h3 class="dashhead-title">Overview</h3>
+  </div>
 
-<a class='btn btn-primary' href="/sites/new">Create Site</a>
+  <div class="dashhead-toolbar">
+    <div class="btn-group dashhead-toolbar-item btn-group-thirds">
+      <a class="btn btn-primary" href="/sites/new" class="">Create Site</a>
+    </div>
+  </div>
+</div>
 
-<br>
-<br>
+<div class="clearfix"></div>
 
-<table class='table'>
-    <thead>
-    <tr>
-        <th>Id</th>
-        <th>Name</th>
-        <th>Created At</th>
-        <th>Updated At</th>
-    </tr>
-    </thead>
-    {% for site in sites %}
-    <tr>
-        <td>{{ site.Id }}</td>
-        <td><a href="/sites/{{ site.Id }}">{{ site.Name }}</a></td>
-        <td>{{ site.CreatedAt }}</td>
-        <td>{{ site.UpdatedAt }}</td>
-    </tr>
-    {% endfor %}
-</table>
+<div class="list-group pt-2">
+  {% for site in sites %}
+  <a href="/sites/{{ site.Id }}" class="list-group-item list-group-item-action">
+    <h5 class="mb-1">{{ site.Name }}</h5>
+    <small>{{ site.CreatedAt }}</small>
+  </a>
+  {% endfor %}
+</div>
 {% endblock %}
