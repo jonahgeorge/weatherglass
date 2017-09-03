@@ -18,8 +18,9 @@ func (app *Application) EventsOverTimeIndexHandler(w http.ResponseWriter, r *htt
 
 	results, _ := eventsPerMinuteQuery.Run(
 		siteId,
-		r.URL.Query().Get("range"),
-		r.URL.Query().Get("interval"),
+		r.URL.Query().Get("starting"),
+		r.URL.Query().Get("ending"),
+		r.URL.Query().Get("granularity"),
 	)
 
 	response := make(map[time.Time]int)
