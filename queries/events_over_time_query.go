@@ -2,6 +2,8 @@ package queries
 
 import (
 	"database/sql"
+	"log"
+	"strings"
 	"time"
 )
 
@@ -11,23 +13,25 @@ with timeslices as (
     interval,
     0 as blank_count
   from generate_series(
-    date_trunc($2, (current_timestamp at time zone 'utc'))::timestamp,
-    (current_timestamp at time zone 'utc')::timestamp, 
-    $4
+    to_timestamp(floor(extract(epoch from $2::timestamp) / extract(epoch from $4::interval)) * extract(epoch from $4::interval)), 
+    to_timestamp(floor(extract(epoch from $3::timestamp) / extract(epoch from $4::interval)) * extract(epoch from $4::interval)), 
+    $4::interval 
   ) as interval
-)
-select
-  timeslices.interval as interval,
-  coalesce(events_per_interval.count, timeslices.blank_count) as count
-from timeslices
-left outer join (
+),
+events_per_interval as (
   select
-    date_trunc($3, created_at) as interval,
+    to_timestamp(floor(extract(epoch from created_at) / extract(epoch from $4::interval)) * extract(epoch from $4::interval)) as interval, 
     count(*) as count
   from events
   where site_id = $1
+    and created_at >= $2
   group by interval
-) as events_per_interval on events_per_interval.interval = timeslices.interval
+)
+select 
+  timeslices.interval as interval, 
+  coalesce(events_per_interval.count, timeslices.blank_count) as count
+from timeslices
+  left outer join events_per_interval on events_per_interval.interval = timeslices.interval
 order by timeslices.interval`
 
 type EventsOverTimeQuery struct {
@@ -43,9 +47,19 @@ func NewEventsPerMinuteQuery(db *sql.DB) *EventsOverTimeQuery {
 	return &EventsOverTimeQuery{db: db}
 }
 
-func (q *EventsOverTimeQuery) Run(siteId int, wange string, interval string) ([]EventsOverTimeResult, error) {
+func splitLink(s, sep string) (string, string) {
+	x := strings.Split(s, sep)
+	return x[0], x[1]
+}
+
+func (q *EventsOverTimeQuery) Run(siteId int, starting string, ending string, granularity string) ([]EventsOverTimeResult, error) {
+	granularity = strings.Replace(granularity, "-", " ", 1)
+
 	var results []EventsOverTimeResult
-	rows, err := q.db.Query(EVENTS_PER_MINUTE_SQL, siteId, wange, interval, "1 "+interval)
+	rows, err := q.db.Query(EVENTS_PER_MINUTE_SQL, siteId, starting, ending, granularity)
+	if err != nil {
+		log.Println(err)
+	}
 
 	for rows.Next() {
 		result := new(EventsOverTimeResult)

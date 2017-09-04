@@ -1,3 +1,9 @@
+{% macro option_tag(value, text, selected) %}
+<option {% if (selected == value) %}selected{% endif %} value="{{value}}">
+  {{text}}
+</option>
+{% endmacro %}
+
 <!DOCTYPE html>
 <html lang="en">
   <head>

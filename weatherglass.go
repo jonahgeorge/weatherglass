@@ -34,7 +34,8 @@ func main() {
 	r.HandleFunc("/sites/{id:[0-9]+}", app.RequireAuthentication(app.RequireEmailConfirmation(app.SitesDestroyHandler))).Methods("DELETE")
 	r.HandleFunc("/sites/new", app.RequireAuthentication(app.RequireEmailConfirmation(app.SitesNewHandler))).Methods("GET")
 	r.HandleFunc("/sites", app.RequireAuthentication(app.RequireEmailConfirmation(app.SitesCreateHandler))).Methods("POST")
-	r.HandleFunc("/sites/{id:[0-9]+}/reports/events_over_time", app.RequireAuthentication(app.RequireEmailConfirmation(app.EventsOverTimeIndexHandler))).Methods("GET")
+
+	r.HandleFunc("/api/sites/{id:[0-9]+}/events_over_time", app.RequireAuthentication(app.RequireEmailConfirmation(app.EventsOverTimeIndexHandler))).Methods("GET")
 
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./public/")))
 
@@ -44,8 +45,11 @@ func main() {
 	}
 
 	log.Println("Listening on " + port)
-	log.Fatal(http.ListenAndServe(":"+port,
-		handlers.CompressHandler(
+	log.Fatal(
+		http.ListenAndServe(":"+port,
 			handlers.HTTPMethodOverrideHandler(
-				handlers.LoggingHandler(os.Stdout, r)))))
+				handlers.LoggingHandler(os.Stdout, r),
+			),
+		),
+	)
 }

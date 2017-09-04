@@ -12,7 +12,16 @@
 
   <div class="dashhead-toolbar">
     <div class="btn-group dashhead-toolbar-item btn-group-thirds">
-      <a rel="nofollow" class="btn btn-danger" data-method="DELETE" href="/sites/{{site.Id}}" data-confirm="Are you sure you want to delete this site?">Delete Site</a>
+      <form method="GET">
+        <select name="range" class="form-control" onchange="this.form.submit()">
+          {{ option_tag("past-2-hours", "Past 2hrs", range) }}
+          {{ option_tag("past-24-hours", "Past 24hrs", range) }}
+          {{ option_tag("past-72-hours", "Past 72hrs", range) }}
+          {{ option_tag("past-7-days", "Past 7 days", range) }}
+          {{ option_tag("past-1-month", "Past 1 month", range) }}
+          {{ option_tag("past-1-year", "Past 1 year", range) }}
+        </select>
+      </form>
     </div>
   </div>
 </div>
@@ -20,16 +29,12 @@
 <div class="clearfix"></div>
 
 <label>Traffic Over the Past Day (by hour)</label>
-<div id="daily-chart" style="height: 300px; text-align: center; color: #999; line-height: 300px; font-size: 14px; font-family: 'Lucida Grande', 'Lucida Sans Unicode', Verdana, Arial, Helvetica, sans-serif;">Loading...</div>
-<script type='application/javascript'>
-new Chartkick.LineChart('daily-chart', '/sites/{{site.Id}}/reports/events_over_time?interval=hour&range=day');
-</script>
 
-<br>
-
-<label>Traffic Over the Past Month (by day)</label>
-<div id="monthly-chart" style="height: 300px; text-align: center; color: #999; line-height: 300px; font-size: 14px; font-family: 'Lucida Grande', 'Lucida Sans Unicode', Verdana, Arial, Helvetica, sans-serif;">Loading...</div>
+<div id="daily-chart" style="height: 300px">Loading...</div>
 <script type='application/javascript'>
-new Chartkick.LineChart('monthly-chart', '/sites/{{site.Id}}/reports/events_over_time?interval=day&range=month');
+new Chartkick.LineChart(
+  'daily-chart', 
+  '/api/sites/{{site.Id}}/events_over_time?granularity={{granularity}}&starting={{starting}}&ending={{ending}}'
+);
 </script>
 {% endblock %}
