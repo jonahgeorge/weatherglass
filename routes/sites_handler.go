@@ -75,8 +75,9 @@ func (app *Application) SitesShowHandler(w http.ResponseWriter, r *http.Request,
 		granularity = "30-day"
 		break
 	default:
-		starting = time.Now().AddDate(0, 0, -1)
-		granularity = "10-minute"
+		url := fmt.Sprintf("/sites/%d?range=past-2-hours", id)
+		http.Redirect(w, r, url, 302)
+		return
 	}
 
 	site, _ := repo.NewSitesRepository(app.db).FindById(id)
