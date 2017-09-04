@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -9,6 +10,7 @@ import (
 	"github.com/flosch/pongo2"
 	"github.com/gorilla/mux"
 	"github.com/jonahgeorge/weatherglass/models"
+	"github.com/jonahgeorge/weatherglass/queries"
 	repo "github.com/jonahgeorge/weatherglass/repositories"
 )
 
@@ -45,6 +47,9 @@ func (app *Application) SitesCreateHandler(w http.ResponseWriter, r *http.Reques
 func (app *Application) SitesShowHandler(w http.ResponseWriter, r *http.Request, currentUser *models.User) {
 	session, _ := app.GetSession(r)
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+
+	format := "2006-01-02 15:04:05"
+	ending := time.Now()
 
 	var starting time.Time
 	var granularity string
@@ -88,13 +93,18 @@ func (app *Application) SitesShowHandler(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	format := "2006-01-02 15:04:05"
+	referrers, err := queries.NewReferrersQuery(app.db).Run(site.Id, starting, ending)
+	if err != nil {
+		log.Println(err)
+	}
+
 	app.Render(w, r, "sites/show", pongo2.Context{
 		"site":        site,
 		"starting":    starting.Format(format),
-		"ending":      time.Now().Format(format),
+		"ending":      ending.Format(format),
 		"granularity": granularity,
 		"range":       r.URL.Query().Get("range"),
+		"referrers":   referrers,
 	})
 }
 

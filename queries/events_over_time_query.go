@@ -47,11 +47,6 @@ func NewEventsPerMinuteQuery(db *sql.DB) *EventsOverTimeQuery {
 	return &EventsOverTimeQuery{db: db}
 }
 
-func splitLink(s, sep string) (string, string) {
-	x := strings.Split(s, sep)
-	return x[0], x[1]
-}
-
 func (q *EventsOverTimeQuery) Run(siteId int, starting string, ending string, granularity string) ([]EventsOverTimeResult, error) {
 	granularity = strings.Replace(granularity, "-", " ", 1)
 

@@ -1,0 +1,15 @@
+<div class="card">
+  <div class="card-header">
+    Page Views
+  </div>
+
+  <div class="card-body">
+    <div id="daily-chart" style="height: 300px">Loading...</div>
+    <script type='application/javascript'>
+    new Chartkick.LineChart(
+      'daily-chart', 
+      '/api/sites/{{site.Id}}/events_over_time?granularity={{granularity}}&starting={{starting}}&ending={{ending}}'
+    );
+    </script>
+  </div>
+</div>

@@ -28,13 +28,16 @@
 
 <div class="clearfix"></div>
 
-<label>Traffic Over the Past Day (by hour)</label>
+{% include "_page_views_card.html" %}
 
-<div id="daily-chart" style="height: 300px">Loading...</div>
-<script type='application/javascript'>
-new Chartkick.LineChart(
-  'daily-chart', 
-  '/api/sites/{{site.Id}}/events_over_time?granularity={{granularity}}&starting={{starting}}&ending={{ending}}'
-);
-</script>
+<br>
+
+<div class="row">
+  <div class="col-6">
+    {% include "_referrers_card.html" %}
+  </div>
+  <div class="col-6">
+    {% include "_devices_card.html" %}
+  </div>
+</div>
 {% endblock %}
