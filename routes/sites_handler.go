@@ -98,6 +98,11 @@ func (app *Application) SitesShowHandler(w http.ResponseWriter, r *http.Request,
 		log.Println(err)
 	}
 
+	userAgents, err := queries.NewUserAgentsQuery(app.db).Run(site.Id, starting, ending)
+	if err != nil {
+		log.Println(err)
+	}
+
 	app.Render(w, r, "sites/show", pongo2.Context{
 		"site":        site,
 		"starting":    starting.Format(format),
@@ -105,6 +110,7 @@ func (app *Application) SitesShowHandler(w http.ResponseWriter, r *http.Request,
 		"granularity": granularity,
 		"range":       r.URL.Query().Get("range"),
 		"referrers":   referrers,
+		"userAgents":  userAgents,
 	})
 }
 
