@@ -15,11 +15,11 @@ from (
     substring(referrer from '.*://([^/]*)') as host
   from events
   where site_id = $1
-    and created_at >= $2
-    and created_at <= $3
+    and created_at between $2 and $3
     and referrer is not null
 ) referrers
-group by host`
+group by host
+order by count desc`
 
 type ReferrersQuery struct {
 	db *sql.DB

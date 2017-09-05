@@ -11,12 +11,10 @@ import (
 	"github.com/jonahgeorge/weatherglass/queries"
 )
 
-func (app *Application) EventsOverTimeIndexHandler(w http.ResponseWriter, r *http.Request, currentUser *models.User) {
+func (app *Application) PageViewsHandler(w http.ResponseWriter, r *http.Request, currentUser *models.User) {
 	siteId, _ := strconv.Atoi(mux.Vars(r)["id"])
 
-	eventsPerMinuteQuery := queries.NewEventsPerMinuteQuery(app.db)
-
-	results, _ := eventsPerMinuteQuery.Run(
+	results, _ := queries.NewPageViewsQuery(app.db).Run(
 		siteId,
 		r.URL.Query().Get("starting"),
 		r.URL.Query().Get("ending"),

@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-const EVENTS_PER_MINUTE_SQL = `
+const pageViewsSql = `
 with timeslices as (
   select
     interval,
@@ -34,30 +34,30 @@ from timeslices
   left outer join events_per_interval on events_per_interval.interval = timeslices.interval
 order by timeslices.interval`
 
-type EventsOverTimeQuery struct {
+type PageViewsQuery struct {
 	db *sql.DB
 }
 
-type EventsOverTimeResult struct {
+type PageViewsResult struct {
 	Interval time.Time `json:"interval"`
 	Count    int       `json:"count"`
 }
 
-func NewEventsPerMinuteQuery(db *sql.DB) *EventsOverTimeQuery {
-	return &EventsOverTimeQuery{db: db}
+func NewPageViewsQuery(db *sql.DB) *PageViewsQuery {
+	return &PageViewsQuery{db: db}
 }
 
-func (q *EventsOverTimeQuery) Run(siteId int, starting string, ending string, granularity string) ([]EventsOverTimeResult, error) {
+func (q *PageViewsQuery) Run(siteId int, starting string, ending string, granularity string) ([]PageViewsResult, error) {
 	granularity = strings.Replace(granularity, "-", " ", 1)
 
-	var results []EventsOverTimeResult
-	rows, err := q.db.Query(EVENTS_PER_MINUTE_SQL, siteId, starting, ending, granularity)
+	var results []PageViewsResult
+	rows, err := q.db.Query(pageViewsSql, siteId, starting, ending, granularity)
 	if err != nil {
 		log.Println(err)
 	}
 
 	for rows.Next() {
-		result := new(EventsOverTimeResult)
+		result := new(PageViewsResult)
 		err = rows.Scan(&result.Interval, &result.Count)
 		results = append(results, *result)
 	}

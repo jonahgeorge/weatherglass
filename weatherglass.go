@@ -35,7 +35,7 @@ func main() {
 	r.HandleFunc("/sites/new", app.RequireAuthentication(app.RequireEmailConfirmation(app.SitesNewHandler))).Methods("GET")
 	r.HandleFunc("/sites", app.RequireAuthentication(app.RequireEmailConfirmation(app.SitesCreateHandler))).Methods("POST")
 
-	r.HandleFunc("/api/sites/{id:[0-9]+}/events_over_time", app.RequireAuthentication(app.RequireEmailConfirmation(app.EventsOverTimeIndexHandler))).Methods("GET")
+	r.HandleFunc("/api/sites/{id:[0-9]+}/page_views", app.RequireAuthentication(app.RequireEmailConfirmation(app.PageViewsHandler))).Methods("GET")
 
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./public/")))
 

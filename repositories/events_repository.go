@@ -9,10 +9,9 @@ import (
 const VISITS_ALL_SQL = "SELECT * FROM events"
 
 const VISIT_CREATE_SQL = `
-insert into events
-(site_id, resource, referrer, title, user_agent) 
+insert into events (site_id, resource, referrer, title, user_agent) 
 values ($1, $2, $3, $4, $5)
-`
+returning *`
 
 type EventsRepository struct {
 	db *sql.DB

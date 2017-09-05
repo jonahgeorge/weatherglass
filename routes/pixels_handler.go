@@ -31,6 +31,8 @@ func eventFromRequest(r *http.Request) *models.Event {
 
 	siteId, _ := strconv.Atoi(queryParams.Get("site_id"))
 
+	log.Println(*getOrNil(queryParams, "user_agent"))
+
 	return &models.Event{
 		SiteId:    siteId,
 		Resource:  getOrNil(queryParams, "resource"),
