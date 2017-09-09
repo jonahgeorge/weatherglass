@@ -18,3 +18,9 @@ forego run 'go run *.go'
 ```sh
 ./script/deploy
 ```
+
+## Creating a new migration
+
+```sh
+./bin/migrate create -ext sql -dir migrations add_device_id_to_events
+```
