@@ -12,4 +12,4 @@ docker tag jonahgeorge/weatherglass registry.heroku.com/weatherglass/web
 docker push registry.heroku.com/weatherglass/web
 
 # Run pending database migrations
-heroku run 'migrate -path migrations -database $DATABASE_URL up'
+./bin/migrate -path migrations -database $(heroku config:get DATABASE_URL) up
