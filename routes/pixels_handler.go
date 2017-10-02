@@ -10,6 +10,7 @@ import (
 
 	"github.com/jonahgeorge/weatherglass/models"
 	repo "github.com/jonahgeorge/weatherglass/repositories"
+	"github.com/mssola/user_agent"
 )
 
 func (app *Application) PixelsCreateHandler(w http.ResponseWriter, r *http.Request) {
@@ -32,14 +33,18 @@ func eventFromRequest(r *http.Request) *models.Event {
 
 	siteId, _ := strconv.Atoi(queryParams.Get("site_id"))
 
-	log.Println(*getOrNil(queryParams, "user_agent"))
+	userAgent := getOrNil(queryParams, "user_agent")
+	ua := user_agent.New(*userAgent)
+	name, version := ua.Browser()
 
 	return &models.Event{
-		SiteId:    siteId,
-		Resource:  getOrNil(queryParams, "resource"),
-		Referrer:  getOrNil(queryParams, "referrer"),
-		Title:     getOrNil(queryParams, "title"),
-		UserAgent: getOrNil(queryParams, "user_agent"),
+		SiteId:         siteId,
+		Resource:       getOrNil(queryParams, "resource"),
+		Referrer:       getOrNil(queryParams, "referrer"),
+		Title:          getOrNil(queryParams, "title"),
+		UserAgent:      getOrNil(queryParams, "user_agent"),
+		BrowserName:    &name,
+		BrowserVersion: &version,
 	}
 }
 
