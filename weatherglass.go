@@ -7,9 +7,9 @@ import (
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/jonahgeorge/force-ssl-heroku"
 	application "github.com/jonahgeorge/weatherglass/routes"
 	_ "github.com/lib/pq"
-	"gopkg.in/unrolled/secure.v1"
 )
 
 func main() {
@@ -45,18 +45,12 @@ func main() {
 		port = "3000"
 	}
 
-	secureMiddleware := secure.New(secure.Options{
-		SSLRedirect:   true,
-		SSLHost:       os.Getenv("HOST"),
-		IsDevelopment: os.Getenv("ENV") == "development",
-	})
-
 	log.Println("Listening on " + port)
 	log.Fatal(
 		http.ListenAndServe(":"+port,
 			handlers.HTTPMethodOverrideHandler(
 				handlers.LoggingHandler(os.Stdout,
-					secureMiddleware.Handler(r),
+					forcesslheroku.ForceSsl(r),
 				),
 			),
 		),
