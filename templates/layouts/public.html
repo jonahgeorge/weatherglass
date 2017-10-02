@@ -76,7 +76,7 @@
   t.type  = 'text/javascript';
   t.async = true;
   t.id    = 'weatherglass-tracker';
-  t.setAttribute('data-site-id', '1');
+  t.setAttribute('data-site-id', '{{ weatherglass_site_id }}');
   t.src = "{{ host }}/track.js";
   var s = document.getElementsByTagName('script')[0];
   s.parentNode.insertBefore(t, s);
