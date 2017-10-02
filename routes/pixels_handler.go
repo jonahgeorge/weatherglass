@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/jonahgeorge/weatherglass/models"
 	repo "github.com/jonahgeorge/weatherglass/repositories"
@@ -27,7 +28,7 @@ func (app *Application) PixelsCreateHandler(w http.ResponseWriter, r *http.Reque
 }
 
 func eventFromRequest(r *http.Request) *models.Event {
-	queryParams := r.URL.Query()
+	queryParams, _ := ParseQuery(r.URL.RawQuery)
 
 	siteId, _ := strconv.Atoi(queryParams.Get("site_id"))
 
@@ -50,4 +51,44 @@ func getOrNil(values url.Values, key string) *string {
 	} else {
 		return nil
 	}
+}
+
+func ParseQuery(query string) (url.Values, error) {
+	m := make(url.Values)
+	err := tolerantParseQuery(m, query)
+	return m, err
+}
+
+func tolerantParseQuery(m url.Values, query string) (err error) {
+	for query != "" {
+		key := query
+		if i := strings.IndexAny(key, "&"); i >= 0 {
+			key, query = key[:i], key[i+1:]
+		} else {
+			query = ""
+		}
+		if key == "" {
+			continue
+		}
+		value := ""
+		if i := strings.Index(key, "="); i >= 0 {
+			key, value = key[:i], key[i+1:]
+		}
+		key, err1 := url.QueryUnescape(key)
+		if err1 != nil {
+			if err == nil {
+				err = err1
+			}
+			continue
+		}
+		value, err1 = url.QueryUnescape(value)
+		if err1 != nil {
+			if err == nil {
+				err = err1
+			}
+			continue
+		}
+		m[key] = append(m[key], value)
+	}
+	return err
 }
