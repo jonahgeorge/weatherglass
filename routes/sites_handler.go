@@ -51,39 +51,7 @@ func (app *Application) SitesShowHandler(w http.ResponseWriter, r *http.Request,
 	format := "2006-01-02 15:04:05"
 	ending := time.Now()
 
-	var starting time.Time
-	var granularity string
-
-	switch r.URL.Query().Get("range") {
-	case "past-2-hours":
-		starting = time.Now().Add(-2 * time.Hour)
-		granularity = "1-minute"
-		break
-	case "past-24-hours":
-		starting = time.Now().AddDate(0, 0, -1)
-		granularity = "10-minute"
-		break
-	case "past-72-hours":
-		starting = time.Now().Add(-74 * time.Hour)
-		granularity = "1-hour"
-		break
-	case "past-7-days":
-		starting = time.Now().Add(-7 * 24 * time.Hour)
-		granularity = "2-hour"
-		break
-	case "past-1-month":
-		starting = time.Now().AddDate(0, -1, 0)
-		granularity = "1-day"
-		break
-	case "past-1-year":
-		starting = time.Now().AddDate(-1, 0, 0)
-		granularity = "30-day"
-		break
-	default:
-		url := fmt.Sprintf("/sites/%d?range=past-2-hours", id)
-		http.Redirect(w, r, url, 302)
-		return
-	}
+	starting, granularity := parseRange(r.URL.Query().Get("range"))
 
 	site, _ := repo.NewSitesRepository(app.db).FindById(id)
 	if !currentUser.CanView(site) {
@@ -181,4 +149,23 @@ func (app *Application) SitesDestroyHandler(w http.ResponseWriter, r *http.Reque
 	session.Save(r, w)
 
 	http.Redirect(w, r, "/sites", 302)
+}
+
+func parseRange(r string) (time.Time, string) {
+	switch r {
+	case "past-1-year":
+		return time.Now().AddDate(-1, 0, 0), "30-day"
+	case "past-1-month":
+		return time.Now().AddDate(0, -1, 0), "1-day"
+	case "past-7-days":
+		return time.Now().Add(-7 * 24 * time.Hour), "2-hour"
+	case "past-72-hours":
+		return time.Now().Add(-74 * time.Hour), "1-hour"
+	case "past-24-hours":
+		return time.Now().AddDate(0, 0, -1), "10-minute"
+	case "past-2-hours":
+		return time.Now().Add(-2 * time.Hour), "1-minute"
+	}
+
+	return time.Now().Add(-2 * time.Hour), "1-minute"
 }
