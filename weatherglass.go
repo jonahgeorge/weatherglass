@@ -7,6 +7,7 @@ import (
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	_ "github.com/heroku/x/hmetrics/onload"
 	"github.com/jonahgeorge/force-ssl-heroku"
 	application "github.com/jonahgeorge/weatherglass/routes"
 	_ "github.com/lib/pq"
