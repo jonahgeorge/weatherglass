@@ -1,3 +1,7 @@
 weatherglass
 Dockerfile
 .env
+gin-bin
+.env.example
+.gitignore
+README.md
