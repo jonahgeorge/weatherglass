@@ -5,9 +5,14 @@ Weatherglass is an open-source Google Analytics alternative that is easy to self
 ## Development
 
 ```sh
-source .env
+# Copy env example and modify as needed
+cp .env.example .env
 
-go run weatherglass.go
+# Install gin
+go get github.com/gin-gonic/gin
+
+# Run application
+gin run weatherglass.go
 ```
 
 ## Creating a new migration
