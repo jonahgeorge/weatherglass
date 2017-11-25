@@ -1,8 +1,6 @@
 package routes
 
 import (
-	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -15,7 +13,9 @@ import (
 )
 
 func (app *Application) SitesIndexHandler(w http.ResponseWriter, r *http.Request, currentUser *models.User) {
-	sites, _ := repo.NewSitesRepository(app.db).FindByUserId(currentUser.Id)
+	sitesRepo := repo.NewSitesRepository(app.db)
+
+	sites, _ := sitesRepo.FindByUserId(currentUser.Id)
 
 	app.Render(w, r, "sites/index", pongo2.Context{"sites": sites})
 }
@@ -45,6 +45,10 @@ func (app *Application) SitesCreateHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (app *Application) SitesShowHandler(w http.ResponseWriter, r *http.Request, currentUser *models.User) {
+	sitesRepo := repo.NewSitesRepository(app.db)
+	referrersQuery := queries.NewReferrersQuery(app.db)
+	devicesQuery := queries.NewDevicesQuery(app.db)
+
 	session, _ := app.GetSession(r)
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 
@@ -53,103 +57,96 @@ func (app *Application) SitesShowHandler(w http.ResponseWriter, r *http.Request,
 
 	starting, granularity := parseRange(r.URL.Query().Get("range"))
 
-	site, _ := repo.NewSitesRepository(app.db).FindById(id)
-	if !currentUser.CanView(site) {
+	siteResult := <-sitesRepo.FindById(id)
+	if !currentUser.CanView(siteResult.Ok) {
 		session.AddFlash("You are not authorized to access this resource.")
 		session.Save(r, w)
 		http.Redirect(w, r, "/sites", 302)
 		return
 	}
 
-	referrers, err := queries.NewReferrersQuery(app.db).Run(site.Id, starting, ending)
-	if err != nil {
-		log.Println(err)
-	}
-
-	devices, err := queries.NewDevicesQuery(app.db).Run(site.Id, starting, ending)
-	if err != nil {
-		log.Println(err)
-	}
+	referrersResult := referrersQuery.Run(siteResult.Ok.Id, starting, ending)
+	devicesResult := devicesQuery.Run(siteResult.Ok.Id, starting, ending)
 
 	app.Render(w, r, "sites/show", pongo2.Context{
-		"site":        site,
+		"site":        siteResult.Ok,
 		"starting":    starting.Format(format),
 		"ending":      ending.Format(format),
 		"granularity": granularity,
 		"range":       r.URL.Query().Get("range"),
-		"referrers":   referrers,
-		"devices":     devices,
+		"referrers":   (<-referrersResult).Ok,
+		"devices":     (<-devicesResult).Ok,
 	})
 }
 
-func (app *Application) SitesEditHandler(w http.ResponseWriter, r *http.Request, currentUser *models.User) {
-	session, _ := app.GetSession(r)
-	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+// func (app *Application) SitesEditHandler(w http.ResponseWriter, r *http.Request, currentUser *models.User) {
+// 	session, _ := app.GetSession(r)
+// 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+//
+// 	site, _ := repo.NewSitesRepository(app.db).FindById(id)
+// 	if !currentUser.CanUpdate(site) {
+// 		session.AddFlash("You are not authorized to access this resource.")
+// 		session.Save(r, w)
+// 		http.Redirect(w, r, "/sites", 302)
+// 		return
+// 	}
+//
+// 	app.Render(w, r, "sites/edit", pongo2.Context{"site": site})
+// }
 
-	site, _ := repo.NewSitesRepository(app.db).FindById(id)
-	if !currentUser.CanUpdate(site) {
-		session.AddFlash("You are not authorized to access this resource.")
-		session.Save(r, w)
-		http.Redirect(w, r, "/sites", 302)
-		return
-	}
+// func (app *Application) SitesUpdateHandler(w http.ResponseWriter, r *http.Request, currentUser *models.User) {
+// 	session, _ := app.GetSession(r)
+// 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+//
+// 	site, err := repo.NewSitesRepository(app.db).FindById(id)
+// 	if !currentUser.CanUpdate(site) {
+// 		session.AddFlash("You are not authorized to access this resource.")
+// 		session.Save(r, w)
+// 		http.Redirect(w, r, "/sites", 302)
+// 		return
+// 	}
+//
+// 	site.Name = r.PostFormValue("name")
+//
+// 	_, err = repo.NewSitesRepository(app.db).Update(id, site.Name)
+// 	if err != nil {
+// 		session.AddFlash("An error occured while updating this site")
+// 		session.Save(r, w)
+// 		app.Render(w, r, "sites/edit", pongo2.Context{"site": site})
+// 		return
+// 	}
+//
+// 	session.AddFlash("Successfully updated site!")
+// 	session.Save(r, w)
+//
+// 	http.Redirect(w, r, fmt.Sprintf("/sites/%d", site.Id), 302)
+// }
 
-	app.Render(w, r, "sites/edit", pongo2.Context{"site": site})
-}
-
-func (app *Application) SitesUpdateHandler(w http.ResponseWriter, r *http.Request, currentUser *models.User) {
-	session, _ := app.GetSession(r)
-	id, _ := strconv.Atoi(mux.Vars(r)["id"])
-
-	site, err := repo.NewSitesRepository(app.db).FindById(id)
-	if !currentUser.CanUpdate(site) {
-		session.AddFlash("You are not authorized to access this resource.")
-		session.Save(r, w)
-		http.Redirect(w, r, "/sites", 302)
-		return
-	}
-
-	site.Name = r.PostFormValue("name")
-
-	_, err = repo.NewSitesRepository(app.db).Update(id, site.Name)
-	if err != nil {
-		session.AddFlash("An error occured while updating this site")
-		session.Save(r, w)
-		app.Render(w, r, "sites/edit", pongo2.Context{"site": site})
-		return
-	}
-
-	session.AddFlash("Successfully updated site!")
-	session.Save(r, w)
-
-	http.Redirect(w, r, fmt.Sprintf("/sites/%d", site.Id), 302)
-}
-
-func (app *Application) SitesDestroyHandler(w http.ResponseWriter, r *http.Request, currentUser *models.User) {
-	session, _ := app.GetSession(r)
-	id, _ := strconv.Atoi(mux.Vars(r)["id"])
-
-	site, _ := repo.NewSitesRepository(app.db).FindById(id)
-	if !currentUser.CanDelete(site) {
-		session.AddFlash("You are not authorized to access this resource.")
-		session.Save(r, w)
-		http.Redirect(w, r, "/sites", 302)
-		return
-	}
-
-	_, err := repo.NewSitesRepository(app.db).Delete(site.Id)
-	if err != nil {
-		session.AddFlash("An error occured while deleting this site")
-		session.Save(r, w)
-		app.Render(w, r, "sites/edit", pongo2.Context{"site": site})
-		return
-	}
-
-	session.AddFlash("Successfully deleted site!")
-	session.Save(r, w)
-
-	http.Redirect(w, r, "/sites", 302)
-}
+// func (app *Application) SitesDestroyHandler(w http.ResponseWriter, r *http.Request, currentUser *models.User) {
+// 	session, _ := app.GetSession(r)
+// 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
+//
+// 	site, _ := repo.NewSitesRepository(app.db).FindById(id)
+// 	if !currentUser.CanDelete(site) {
+// 		session.AddFlash("You are not authorized to access this resource.")
+// 		session.Save(r, w)
+// 		http.Redirect(w, r, "/sites", 302)
+// 		return
+// 	}
+//
+// 	_, err := repo.NewSitesRepository(app.db).Delete(site.Id)
+// 	if err != nil {
+// 		session.AddFlash("An error occured while deleting this site")
+// 		session.Save(r, w)
+// 		app.Render(w, r, "sites/edit", pongo2.Context{"site": site})
+// 		return
+// 	}
+//
+// 	session.AddFlash("Successfully deleted site!")
+// 	session.Save(r, w)
+//
+// 	http.Redirect(w, r, "/sites", 302)
+// }
 
 func parseRange(r string) (time.Time, string) {
 	switch r {

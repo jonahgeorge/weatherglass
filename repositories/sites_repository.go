@@ -35,11 +35,23 @@ func (repo *SitesRepository) FindByUserId(userId int) ([]models.Site, error) {
 	return sites, err
 }
 
-func (repo *SitesRepository) FindById(id int) (*models.Site, error) {
-	site := new(models.Site)
-	row := repo.db.QueryRow(SITES_FIND_BY_ID_SQL, id)
-	err := site.FromRow(row)
-	return site, err
+type SiteResult struct {
+	Ok  *models.Site
+	Err error
+}
+
+func (repo *SitesRepository) FindById(id int) <-chan SiteResult {
+	result := make(chan SiteResult)
+
+	go func() {
+		site := new(models.Site)
+		row := repo.db.QueryRow(SITES_FIND_BY_ID_SQL, id)
+		err := site.FromRow(row)
+
+		result <- SiteResult{site, err}
+	}()
+
+	return result
 }
 
 func (repo *SitesRepository) Create(userId int, name string) (*models.Site, error) {

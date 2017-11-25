@@ -25,7 +25,7 @@ type ReferrersQuery struct {
 	db *sql.DB
 }
 
-type ReferrersResult struct {
+type ReferrersRecord struct {
 	Referrer string `json:"referrer"`
 	Count    int    `json:"count"`
 }
@@ -34,18 +34,29 @@ func NewReferrersQuery(db *sql.DB) *ReferrersQuery {
 	return &ReferrersQuery{db: db}
 }
 
-func (q *ReferrersQuery) Run(siteId int, starting time.Time, ending time.Time) ([]ReferrersResult, error) {
-	var results []ReferrersResult
-	rows, err := q.db.Query(REFERRERS_SQL, siteId, starting, ending)
-	if err != nil {
-		log.Println(err)
-	}
+type ReferrersResult struct {
+	Ok  []ReferrersRecord
+	Err error
+}
 
-	for rows.Next() {
-		result := new(ReferrersResult)
-		err = rows.Scan(&result.Referrer, &result.Count)
-		results = append(results, *result)
-	}
+func (q *ReferrersQuery) Run(siteId int, starting time.Time, ending time.Time) <-chan ReferrersResult {
+	result := make(chan ReferrersResult)
 
-	return results, err
+	go func() {
+		var results []ReferrersRecord
+		rows, err := q.db.Query(REFERRERS_SQL, siteId, starting, ending)
+		if err != nil {
+			log.Println(err)
+		}
+
+		for rows.Next() {
+			result := new(ReferrersRecord)
+			err = rows.Scan(&result.Referrer, &result.Count)
+			results = append(results, *result)
+		}
+
+		result <- ReferrersResult{results, err}
+	}()
+
+	return result
 }

@@ -40,12 +40,12 @@ func NewApplication() *Application {
 
 func (app *Application) Render(w http.ResponseWriter, r *http.Request, name string, data pongo2.Context) error {
 	t, _ := pongo2.FromFile("templates/" + name + ".html")
-
+	userRepo := repo.NewUsersRepository(app.db)
 	session, _ := app.GetSession(r)
 
 	if session.Values["userId"] != nil {
-		user, _ := repo.NewUsersRepository(app.db).FindById(session.Values["userId"].(int))
-		data["currentUser"] = user
+		userResult := <-userRepo.FindById(session.Values["userId"].(int))
+		data["currentUser"] = userResult.Ok
 	}
 
 	data["flashes"] = session.Flashes()
@@ -64,8 +64,16 @@ func (app *Application) GetSession(r *http.Request) (*sessions.Session, error) {
 type AuthenticatedHandlerFunc func(http.ResponseWriter, *http.Request, *models.User)
 
 func (app *Application) RequireAuthentication(next AuthenticatedHandlerFunc) http.HandlerFunc {
+	userRepo := repo.NewUsersRepository(app.db)
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session, err := app.GetSession(r)
+		if err != nil {
+			session.AddFlash("You must be logged in!")
+			session.Save(r, w)
+			http.Redirect(w, r, "/login", 307)
+			return
+		}
 
 		userId, ok := session.Values["userId"]
 		if !ok {
@@ -75,15 +83,15 @@ func (app *Application) RequireAuthentication(next AuthenticatedHandlerFunc) htt
 			return
 		}
 
-		user, err := repo.NewUsersRepository(app.db).FindById(userId.(int))
-		if user == nil || err != nil {
+		userResult := <-userRepo.FindById(userId.(int))
+		if userResult.Ok == nil || userResult.Err != nil {
 			session.AddFlash("You must be logged in!")
 			session.Save(r, w)
 			http.Redirect(w, r, "/login", 307)
 			return
 		}
 
-		next(w, r, user)
+		next(w, r, userResult.Ok)
 	})
 }
 

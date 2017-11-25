@@ -34,14 +34,27 @@ func (repo *UsersRepository) FetchAll() ([]models.User, error) {
 	return users, err
 }
 
-func (repo *UsersRepository) FindById(id int) (*models.User, error) {
-	user := new(models.User)
-	row := repo.db.QueryRow(USERS_FIND_BY_ID_SQL, id)
-	err := user.FromRow(row)
-	if err != nil && err == sql.ErrNoRows {
-		return nil, nil
-	}
-	return user, err
+type UserResult struct {
+	Ok  *models.User
+	Err error
+}
+
+func (repo *UsersRepository) FindById(id int) <-chan UserResult {
+	result := make(chan UserResult)
+
+	go func() {
+		user := new(models.User)
+		row := repo.db.QueryRow(USERS_FIND_BY_ID_SQL, id)
+		err := user.FromRow(row)
+		if err != nil && err == sql.ErrNoRows {
+			result <- UserResult{nil, err}
+			return
+		}
+
+		result <- UserResult{user, nil}
+	}()
+
+	return result
 }
 
 func (repo *UsersRepository) FindByEmailAndPassword(email, password string) (*models.User, error) {

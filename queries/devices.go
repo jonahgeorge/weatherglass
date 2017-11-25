@@ -23,7 +23,7 @@ type DevicesQuery struct {
 	db *sql.DB
 }
 
-type DevicesResult struct {
+type DevicesRecord struct {
 	BrowserName    string
 	BrowserVersion string
 	Count          int
@@ -33,18 +33,29 @@ func NewDevicesQuery(db *sql.DB) *DevicesQuery {
 	return &DevicesQuery{db: db}
 }
 
-func (q *DevicesQuery) Run(siteId int, starting time.Time, ending time.Time) ([]DevicesResult, error) {
-	var results []DevicesResult
-	rows, err := q.db.Query(devicesSql, siteId, starting, ending)
-	if err != nil {
-		log.Println(err)
-	}
+type DevicesResult struct {
+	Ok  []DevicesRecord
+	Err error
+}
 
-	for rows.Next() {
-		result := new(DevicesResult)
-		err = rows.Scan(&result.BrowserName, &result.BrowserVersion, &result.Count)
-		results = append(results, *result)
-	}
+func (q *DevicesQuery) Run(siteId int, starting time.Time, ending time.Time) <-chan DevicesResult {
+	result := make(chan DevicesResult)
 
-	return results, err
+	go func() {
+		var results []DevicesRecord
+		rows, err := q.db.Query(devicesSql, siteId, starting, ending)
+		if err != nil {
+			log.Println(err)
+		}
+
+		for rows.Next() {
+			result := new(DevicesRecord)
+			err = rows.Scan(&result.BrowserName, &result.BrowserVersion, &result.Count)
+			results = append(results, *result)
+		}
+
+		result <- DevicesResult{results, err}
+	}()
+
+	return result
 }
