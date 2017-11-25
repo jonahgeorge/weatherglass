@@ -76,3 +76,7 @@
 [[constraint]]
   branch = "master"
   name = "golang.org/x/blog"
+
+[[constraint]]
+  name = "github.com/joho/godotenv"
+  version = "1.2.0"
